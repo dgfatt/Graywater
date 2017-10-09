@@ -20,18 +20,18 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 
 	private final Map<Integer, ViewHolderCreator> mViewHolderCreatorMap;
 	private final Map<Class<?>,
-			ItemBinder<
+			Provider<ItemBinder<
 					? extends Primitive,
 					? extends PrimitiveViewHolder,
-					? extends Binder<? extends Primitive, ? extends PrimitiveViewHolder>>> mItemBinderMap;
+					? extends Binder<? extends Primitive, ? extends PrimitiveViewHolder>>>> mItemBinderMap;
 
 	@Inject
 	public PrimitiveAdapter(final Map<Integer, ViewHolderCreator> viewHolderCreatorMap,
 	                        final Map<Class<?>,
-			                        ItemBinder<
+			                        Provider<ItemBinder<
 					                        ? extends Primitive,
 					                        ? extends PrimitiveViewHolder,
-					                        ? extends Binder<? extends Primitive, ? extends PrimitiveViewHolder>>> itemBinderMap) {
+					                        ? extends Binder<? extends Primitive, ? extends PrimitiveViewHolder>>>> itemBinderMap) {
 		mViewHolderCreatorMap = viewHolderCreatorMap;
 		mItemBinderMap = itemBinderMap;
 	}
@@ -40,7 +40,7 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 	protected ItemBinder getItemBinder(final Primitive model) {
 		final Class<? extends Primitive> modelType = getModelType(model);
 
-		return mItemBinderMap.get(modelType);
+		return mItemBinderMap.get(modelType).get();
 	}
 
 	@NonNull

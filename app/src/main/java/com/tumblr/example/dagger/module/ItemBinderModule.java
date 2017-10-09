@@ -7,6 +7,7 @@ import com.tumblr.example.binder.TextPrimitiveBinder;
 import com.tumblr.example.binderlist.ColorNamePrimitiveItemBinder;
 import com.tumblr.example.binderlist.HeaderPrimitiveItemBinder;
 import com.tumblr.example.binderlist.PaletteItemBinder;
+import com.tumblr.example.dagger.scope.PerActivity;
 import com.tumblr.example.model.ColorNamePrimitive;
 import com.tumblr.example.model.Palette;
 import com.tumblr.example.model.Primitive;
@@ -14,6 +15,7 @@ import com.tumblr.example.viewholder.PrimitiveViewHolder;
 import com.tumblr.graywater.GraywaterAdapter;
 import dagger.Module;
 import dagger.Provides;
+import dagger.android.ActivityKey;
 import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
 import dagger.multibindings.Multibinds;
@@ -25,6 +27,8 @@ import java.util.Map;
  */
 @Module
 public abstract class ItemBinderModule {
+
+	@PerActivity
 	@Provides
 	@IntoMap
 	@ClassKey(ColorNamePrimitive.class)
@@ -39,6 +43,7 @@ public abstract class ItemBinderModule {
 		return new ColorNamePrimitiveItemBinder(colorNameTextBinder, colorNameToastBinder);
 	}
 
+	@PerActivity
 	@Provides
 	@IntoMap
 	@ClassKey(Primitive.Header.class)
@@ -51,6 +56,7 @@ public abstract class ItemBinderModule {
 		return new HeaderPrimitiveItemBinder(headerBinder);
 	}
 
+	@PerActivity
 	@Provides
 	@IntoMap
 	@ClassKey(Palette.class)

@@ -14,10 +14,7 @@ import javax.inject.Singleton;
  */
 @Singleton
 @Component(modules = {
-		AndroidBindingModule.class,
-		BinderModule.class,
-		ViewHolderCreatorModule.class,
-		ItemBinderModule.class
+		AndroidBindingModule.class
 })
 public interface AppComponent {
 	void inject(App app);
