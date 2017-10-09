@@ -1,6 +1,5 @@
 package com.tumblr.example;
 
-import android.support.annotation.NonNull;
 import com.tumblr.example.model.Primitive;
 import com.tumblr.example.viewholder.PrimitiveViewHolder;
 import com.tumblr.graywater.GraywaterAdapter;
@@ -18,7 +17,6 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 		GraywaterAdapter.Binder<? extends Primitive, ? extends PrimitiveViewHolder>,
 		Class<? extends Primitive>> {
 
-	private final Map<Integer, ViewHolderCreator> mViewHolderCreatorMap;
 	private final Map<Class<?>,
 			Provider<ItemBinder<
 					? extends Primitive,
@@ -26,13 +24,17 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 					? extends Binder<? extends Primitive, ? extends PrimitiveViewHolder>>>> mItemBinderMap;
 
 	@Inject
-	public PrimitiveAdapter(final Map<Integer, ViewHolderCreator> viewHolderCreatorMap,
+	public PrimitiveAdapter(final Map<Class<? extends PrimitiveViewHolder>, ViewHolderCreator> viewHolderCreatorMapClass,
 	                        final Map<Class<?>,
 			                        Provider<ItemBinder<
 					                        ? extends Primitive,
 					                        ? extends PrimitiveViewHolder,
 					                        ? extends Binder<? extends Primitive, ? extends PrimitiveViewHolder>>>> itemBinderMap) {
-		mViewHolderCreatorMap = viewHolderCreatorMap;
+
+		for (Map.Entry<Class<? extends PrimitiveViewHolder>, ViewHolderCreator> entry : viewHolderCreatorMapClass.entrySet()) {
+			register(entry.getValue(), entry.getKey());
+		}
+
 		mItemBinderMap = itemBinderMap;
 	}
 
@@ -41,12 +43,6 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 		final Class<? extends Primitive> modelType = getModelType(model);
 
 		return mItemBinderMap.get(modelType).get();
-	}
-
-	@NonNull
-	@Override
-	protected Map<Integer, ViewHolderCreator> getViewHolderCreatorMap() {
-		return mViewHolderCreatorMap;
 	}
 
 	@Override
