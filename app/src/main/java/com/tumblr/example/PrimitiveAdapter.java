@@ -19,6 +19,8 @@ import com.tumblr.example.viewholdercreator.HeaderViewHolderCreator;
 import com.tumblr.example.viewholdercreator.TextPrimitiveViewHolderCreator;
 import com.tumblr.graywater.GraywaterAdapter;
 
+import javax.inject.Inject;
+
 /**
  * Created by ericleong on 3/13/16.
  */
@@ -28,27 +30,25 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 		GraywaterAdapter.Binder<? extends Primitive, ? extends PrimitiveViewHolder>,
 		Class<? extends Primitive>> {
 
-	public PrimitiveAdapter() {
+	@Inject
+	public PrimitiveAdapter(final TextPrimitiveBinder<ColorNamePrimitive> colorNameTextBinder,
+	                        final ColorNameToastBinder colorNameToastBinder,
+	                        final HeaderBinder headerBinder,
+	                        final TextPrimitiveBinder<Palette> paletteTextPrimitiveBinder,
+	                        final PaletteColorBinder paletteColorBinder) {
 		register(new TextPrimitiveViewHolderCreator(), TextPrimitiveViewHolder.class);
 		register(new HeaderViewHolderCreator(), HeaderViewHolder.class);
 		register(new ColorPrimitiveViewHolderCreator(), ColorPrimitiveViewHolder.class);
 
 		// A ColorNamePrimitive is composed of a string and a single color
-		final TextPrimitiveBinder<ColorNamePrimitive> colorNameTextBinder = new TextPrimitiveBinder<>();
-		final ColorNameToastBinder colorNameToastBinder = new ColorNameToastBinder();
-
 		final ColorNamePrimitiveItemBinder colorNamePrimitiveBinderList =
 				new ColorNamePrimitiveItemBinder(this, colorNameTextBinder, colorNameToastBinder);
 		register(ColorNamePrimitive.class, colorNamePrimitiveBinderList, colorNamePrimitiveBinderList);
 
 		// A header always displays the same text
-		final HeaderBinder headerBinder = new HeaderBinder();
 		register(Primitive.Header.class, new HeaderPrimitiveItemBinder(headerBinder), null);
 
 		// A palette is composed of a string and a variable number of colors
-		final TextPrimitiveBinder<Palette> paletteTextPrimitiveBinder = new TextPrimitiveBinder<>();
-		final PaletteColorBinder paletteColorBinder = new PaletteColorBinder();
-
 		final PaletteItemBinder paletteBinderList =
 				new PaletteItemBinder(paletteTextPrimitiveBinder, paletteColorBinder);
 		register(Palette.class, paletteBinderList, paletteBinderList);

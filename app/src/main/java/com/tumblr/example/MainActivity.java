@@ -10,7 +10,12 @@ import com.tumblr.example.model.Palette;
 import com.tumblr.example.model.Primitive;
 import dagger.android.AndroidInjection;
 
+import javax.inject.Inject;
+
 public class MainActivity extends AppCompatActivity {
+
+	@Inject
+	PrimitiveAdapter adapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -23,8 +28,6 @@ public class MainActivity extends AppCompatActivity {
 		if (recyclerView != null) {
 			recyclerView.setLayoutManager(new LinearLayoutManager(this));
 			recyclerView.setItemAnimator(new DefaultItemAnimator());
-
-			final PrimitiveAdapter adapter = new PrimitiveAdapter();
 
 			// A header has nothing special
 			adapter.add(new Primitive.Header());
