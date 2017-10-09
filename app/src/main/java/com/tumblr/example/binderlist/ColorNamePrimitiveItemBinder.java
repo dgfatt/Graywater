@@ -18,7 +18,8 @@ import java.util.List;
  * Created by ericleong on 3/28/16.
  */
 public class ColorNamePrimitiveItemBinder
-		implements GraywaterAdapter.ItemBinder<ColorNamePrimitive, PrimitiveViewHolder>,
+		implements GraywaterAdapter.ItemBinder<ColorNamePrimitive, PrimitiveViewHolder,
+		GraywaterAdapter.Binder<ColorNamePrimitive, ? extends PrimitiveViewHolder>>,
 		GraywaterAdapter.ActionListener<ColorNamePrimitive, PrimitiveViewHolder> {
 
 	private final TextPrimitiveBinder<ColorNamePrimitive> mColorNameTextBinder;
@@ -36,9 +37,9 @@ public class ColorNamePrimitiveItemBinder
 
 	@NonNull
 	@Override
-	public List<GraywaterAdapter.Binder<? super ColorNamePrimitive, ? extends PrimitiveViewHolder>> getBinderList(
+	public List<GraywaterAdapter.Binder<ColorNamePrimitive, ? extends PrimitiveViewHolder>> getBinderList(
 			@NonNull final ColorNamePrimitive model, final int position) {
-		return new ArrayList<GraywaterAdapter.Binder<? super ColorNamePrimitive, ? extends PrimitiveViewHolder>>() {{
+		return new ArrayList<GraywaterAdapter.Binder<ColorNamePrimitive, ? extends PrimitiveViewHolder>>() {{
 			add(mColorNameTextBinder);
 			add(mColorNameToastBinder);
 		}};
@@ -54,6 +55,6 @@ public class ColorNamePrimitiveItemBinder
 		Toast.makeText(v.getContext(), model.getString(), Toast.LENGTH_SHORT).show();
 
 		mAdapter.add(mAdapter.getItemPosition(holder.getAdapterPosition()) + 1,
-				new ColorNamePrimitive(model.getColor(), model.getString() + "+"));
+				new ColorNamePrimitive(model.getColor(), model.getString() + "+"), true);
 	}
 }

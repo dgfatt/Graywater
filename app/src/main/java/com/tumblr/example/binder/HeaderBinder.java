@@ -1,12 +1,10 @@
 package com.tumblr.example.binder;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
-import android.view.ViewGroup;
-import com.tumblr.graywater.GraywaterAdapter;
 import com.tumblr.example.R;
 import com.tumblr.example.model.Primitive;
 import com.tumblr.example.viewholder.HeaderViewHolder;
+import com.tumblr.graywater.GraywaterAdapter;
 
 import java.util.List;
 
@@ -15,10 +13,9 @@ import java.util.List;
  */
 public class HeaderBinder implements GraywaterAdapter.Binder<Primitive.Header, HeaderViewHolder> {
 
-	@NonNull
 	@Override
-	public Class<HeaderViewHolder> getViewHolderType() {
-		return HeaderViewHolder.class;
+	public int getViewType(final Primitive.Header model) {
+		return R.layout.item_header;
 	}
 
 	@Override

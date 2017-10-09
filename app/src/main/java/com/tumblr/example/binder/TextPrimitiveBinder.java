@@ -1,11 +1,10 @@
 package com.tumblr.example.binder;
 
 import android.support.annotation.NonNull;
-import android.view.ViewGroup;
-import com.tumblr.graywater.GraywaterAdapter;
 import com.tumblr.example.R;
 import com.tumblr.example.model.Primitive;
 import com.tumblr.example.viewholder.TextPrimitiveViewHolder;
+import com.tumblr.graywater.GraywaterAdapter;
 
 import java.util.List;
 
@@ -14,10 +13,9 @@ import java.util.List;
  */
 public class TextPrimitiveBinder<U extends Primitive.Text> implements GraywaterAdapter.Binder<U, TextPrimitiveViewHolder> {
 
-	@NonNull
 	@Override
-	public Class<TextPrimitiveViewHolder> getViewHolderType() {
-		return TextPrimitiveViewHolder.class;
+	public int getViewType(final U model) {
+		return R.layout.item_text;
 	}
 
 	@Override

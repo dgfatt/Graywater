@@ -22,7 +22,11 @@ import com.tumblr.graywater.GraywaterAdapter;
 /**
  * Created by ericleong on 3/13/16.
  */
-public class PrimitiveAdapter extends GraywaterAdapter<Primitive, PrimitiveViewHolder, Class<? extends Primitive>> {
+public class PrimitiveAdapter extends GraywaterAdapter<
+		Primitive,
+		PrimitiveViewHolder,
+		GraywaterAdapter.Binder<? extends Primitive, ? extends PrimitiveViewHolder>,
+		Class<? extends Primitive>> {
 
 	public PrimitiveAdapter() {
 		register(new TextPrimitiveViewHolderCreator(), TextPrimitiveViewHolder.class);

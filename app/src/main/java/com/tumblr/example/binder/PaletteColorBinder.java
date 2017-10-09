@@ -3,6 +3,7 @@ package com.tumblr.example.binder;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.Toast;
+import com.tumblr.example.R;
 import com.tumblr.example.model.Palette;
 import com.tumblr.example.viewholder.ColorPrimitiveViewHolder;
 import com.tumblr.graywater.GraywaterAdapter;
@@ -14,10 +15,9 @@ import java.util.List;
  */
 public class PaletteColorBinder implements GraywaterAdapter.Binder<Palette, ColorPrimitiveViewHolder> {
 
-	@NonNull
 	@Override
-	public Class<ColorPrimitiveViewHolder> getViewHolderType() {
-		return ColorPrimitiveViewHolder.class;
+	public int getViewType(final Palette model) {
+		return R.layout.item_color;
 	}
 
 	@Override

@@ -12,7 +12,9 @@ import java.util.List;
 /**
  * Created by ericleong on 3/28/16.
  */
-public class HeaderPrimitiveItemBinder implements GraywaterAdapter.ItemBinder<Primitive.Header, PrimitiveViewHolder> {
+public class HeaderPrimitiveItemBinder
+		implements GraywaterAdapter.ItemBinder<Primitive.Header, PrimitiveViewHolder,
+		GraywaterAdapter.Binder<Primitive.Header, ? extends PrimitiveViewHolder>> {
 	private final HeaderBinder mHeaderBinder;
 
 	public HeaderPrimitiveItemBinder(final HeaderBinder headerBinder) {
@@ -21,9 +23,9 @@ public class HeaderPrimitiveItemBinder implements GraywaterAdapter.ItemBinder<Pr
 
 	@NonNull
 	@Override
-	public List<GraywaterAdapter.Binder<? super Primitive.Header, ? extends PrimitiveViewHolder>> getBinderList(
+	public List<GraywaterAdapter.Binder<Primitive.Header, ? extends PrimitiveViewHolder>> getBinderList(
 			@NonNull final Primitive.Header model, final int position) {
-		return new ArrayList<GraywaterAdapter.Binder<? super Primitive.Header, ? extends PrimitiveViewHolder>>() {{
+		return new ArrayList<GraywaterAdapter.Binder<Primitive.Header, ? extends PrimitiveViewHolder>>() {{
 			add(mHeaderBinder);
 		}};
 	}

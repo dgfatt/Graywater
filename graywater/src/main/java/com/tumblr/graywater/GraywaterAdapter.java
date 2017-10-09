@@ -1,6 +1,7 @@
 package com.tumblr.graywater;
 
 import android.annotation.SuppressLint;
+import android.support.annotation.AnyRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -8,7 +9,6 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.util.Pair;
 import android.support.v7.widget.RecyclerView;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,10 +29,17 @@ import java.util.Set;
  * 		the model type.
  * @param <VH>
  * 		the viewholder type.
+ * @param <B>
+ *      the binder type.
  * @param <MT>
  * 		the type of the model type ({@code Class<T>} for example)
  */
-public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT> extends RecyclerView.Adapter<VH> {
+public abstract class GraywaterAdapter<
+		T,
+		VH extends RecyclerView.ViewHolder,
+		B extends GraywaterAdapter.Binder<? extends T, ? extends VH>,
+		MT>
+		extends RecyclerView.Adapter<VH> {
 
 	private static final int NO_PREVIOUS_BOUND_VIEWHOLDER = -1;
 
@@ -43,22 +50,28 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	protected final List<T> mItems = new ArrayList<>();
 
 	/**
-	 * Set of available binders. This is used to generate the ViewTypes.
+	 * Map of viewtypes to ViewHolderCreators.
 	 */
 	@NonNull
-	private final Map<Class<? extends VH>, ViewHolderCreator> mViewHolderCreatorMap = new ArrayMap<>();
+	private final Map<Integer, ViewHolderCreator> mViewHolderCreatorMap = new ArrayMap<>();
 
 	/**
-	 * Set of available binders. This is used to generate the ViewTypes.
+	 * Map of viewtypes to the class of the viewholders they correspond to. This is just informational.
 	 */
 	@NonNull
-	private final SparseArray<Class<? extends VH>> mViewHolderCreatorList = new SparseArray<>();
+	private final Map<Integer, Class<? extends VH>> mViewTypeToViewHolderClassMap = new ArrayMap<>();
+
+	/**
+	 * Map of viewtypes to the class of the viewholders they correspond to. This is just informational.
+	 */
+	@NonNull
+	private final Map<Class<? extends VH>, Integer> mViewHolderClassToViewTypeMap = new ArrayMap<>();
 
 	/**
 	 * Map from model to a list of binders. A model may have multiple binders.
 	 */
 	@NonNull
-	protected final Map<MT, ItemBinder<? extends T, ? extends VH>> mItemBinderMap = new ArrayMap<>();
+	protected final Map<MT, ItemBinder<? extends T, ? extends VH, ? extends B>> mItemBinderMap = new ArrayMap<>();
 
 	/**
 	 * Map from model to an action listener. A model may have multiple action listeners if there are multiple events.
@@ -78,7 +91,7 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	/**
 	 * The viewholders that have had {@link #prepare(int, Binder, Object, List, int)} called on them.
 	 *
-	 * {@link #add(int, Object)}, {@link #remove(int)}, {@link #onViewRecycled(RecyclerView.ViewHolder)}
+	 * {@link #add(Object)}, {@link #remove(int)}, {@link #onViewRecycled(RecyclerView.ViewHolder)}
 	 * will all cause this to be cleared.
 	 */
 	private final Set<Integer> mViewHolderPreparedCache = new HashSet<>();
@@ -87,14 +100,13 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	 * @param viewHolderCreator
 	 * 		the view holder creator to register.
 	 * @param viewHolderClass
-	 * 		the class of the viewholder.
+	 * 		the class of the viewholder (useful when debugging).
 	 */
 	protected void register(final ViewHolderCreator viewHolderCreator, final Class<? extends VH> viewHolderClass) {
-		final ViewHolderCreator old = mViewHolderCreatorMap.put(viewHolderClass, viewHolderCreator);
-		if (old != null) {
-			mViewHolderCreatorList.delete(old.getViewType());
-		}
-		mViewHolderCreatorList.put(viewHolderCreator.getViewType(), viewHolderClass);
+		final int viewType = viewHolderCreator.getViewType();
+		mViewHolderCreatorMap.put(viewType, viewHolderCreator);
+		mViewTypeToViewHolderClassMap.put(viewType, viewHolderClass);
+		mViewHolderClassToViewTypeMap.put(viewHolderClass, viewType);
 	}
 
 	/**
@@ -106,7 +118,7 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	 * 		the listener to associate with the model.
 	 */
 	protected void register(@NonNull final MT modelType,
-	                        @NonNull final ItemBinder<? extends T, ? extends VH> parts,
+	                        @NonNull final ItemBinder<? extends T, ? extends VH, ? extends B> parts,
 	                        @Nullable final ActionListener<? extends T, ? extends VH> listener) {
 		mItemBinderMap.put(modelType, parts);
 		mActionListenerMap.put(modelType, listener);
@@ -133,12 +145,13 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 		final ItemBinder itemBinder = mItemBinderMap.get(getModelType(model));
 
 		if (itemBinder != null) {
+			// TODO: type safety
 			list = itemBinder.getBinderList(model, position);
 
 			for (final Binder<? super T, ? extends VH> binder : list) {
-				if (!mViewHolderCreatorMap.containsKey(binder.getViewHolderType())) {
+				if (!mViewHolderCreatorMap.containsKey(binder.getViewType(model))) {
 					throw new IllegalArgumentException("Need to register "
-							+ binder.getViewHolderType().getCanonicalName()
+							+ binder.getViewType(model)
 							+ " before adding a ItemBinder that uses it.");
 				}
 			}
@@ -172,15 +185,28 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 
 	@Override
 	public int getItemViewType(final int position) {
+		return internalGetItemViewType(position);
+	}
 
-		final BinderResult result = computeItemAndBinderIndex(position);
+	/**
+	 * Return the view type of the item at <code>position</code> for the purposes
+	 * of view recycling.
+	 *
+	 * @param viewHolderPosition
+	 * 		position to query
+	 * @return integer value identifying the type of the view needed to represent the item at
+	 *                 <code>position</code>. Type codes need not be contiguous.
+	 */
+	protected int internalGetItemViewType(final int viewHolderPosition) {
+		final BinderResult result = computeItemAndBinderIndex(viewHolderPosition);
 
 		final Binder<? super T, ? extends VH> binder = result.getBinder();
 		final int viewType;
 
 		if (binder != null) {
-			viewType = mViewHolderCreatorMap.get(binder.getViewHolderType()).getViewType();
+			viewType = mViewHolderCreatorMap.get(binder.getViewType(result.item)).getViewType();
 		} else {
+			// TODO: how do we handle this?
 			viewType = -1;
 		}
 
@@ -193,12 +219,12 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	 * @return the viewholder class.
 	 */
 	protected Class<? extends VH> getViewHolderClass(final int viewType) {
-		return mViewHolderCreatorList.get(viewType);
+		return mViewTypeToViewHolderClassMap.get(viewType);
 	}
 
 	@Override
 	public VH onCreateViewHolder(final ViewGroup parent, final int viewType) {
-		return (VH) mViewHolderCreatorMap.get(getViewHolderClass(viewType)).create(parent);
+		return (VH) mViewHolderCreatorMap.get(viewType).create(parent);
 	}
 
 	@Override
@@ -216,6 +242,7 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 
 			final ActionListener actionListener = mActionListenerMap.get(getModelType(result.item));
 
+			// TODO: no type safety!
 			binder.bind(result.item, holder, result.binderList, result.binderIndex, actionListener);
 
 			prepareInternal(viewHolderPosition);
@@ -283,10 +310,10 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	}
 
 	/**
-	 *  Checks if the model position is within the bounds of the underlying List
+	 *  Checks if the timeline position is within the bounds of the underlying List
 	 *
 	 * @param itemPosition
-	 *      model item position.
+	 *      timeline item position.
 	 * @return true if within list bounds. False otherwise.
 	 */
 	protected boolean isItemPositionWithinBounds(final int itemPosition) {
@@ -295,13 +322,13 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 
 	/**
 	 * Checks if the viewholder is within the bounds of underlying list.
-	 * 
+	 *
 	 * @param viewHolderPosition
 	 *      viewholder position
 	 * @return true of within list bound. False otherwise.
 	 */
 	protected boolean isViewHolderPositionWithinBounds(final int viewHolderPosition) {
-		return viewHolderPosition >= 0 && viewHolderPosition < getItemCount();
+		return viewHolderPosition >= 0 && viewHolderPosition < mViewHolderToItemPositionCache.size();
 	}
 
 	/**
@@ -330,11 +357,13 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	}
 
 	/**
+	 * Note that this does not notify.
+	 *
 	 * @param item
 	 * 		the item to add to the adapter.
 	 */
 	public void add(@NonNull final T item) {
-		add(mItems.size(), item);
+		add(mItems.size(), item, true);
 	}
 
 	/**
@@ -355,7 +384,11 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	 * @return the position of the item in the list of items.
 	 */
 	public int getItemPosition(final int viewHolderPosition) {
-		return mViewHolderToItemPositionCache.get(viewHolderPosition);
+		if (isViewHolderPositionWithinBounds(viewHolderPosition)) {
+			return mViewHolderToItemPositionCache.get(viewHolderPosition);
+		} else {
+			return -1;
+		}
 	}
 
 	/**
@@ -368,18 +401,6 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	 */
 	public int getBinderPosition(final int itemIndex, final int viewHolderPosition) {
 		return viewHolderPosition - mItemPositionToFirstViewHolderPositionCache.get(itemIndex);
-	}
-
-	/**
-	 * Note that this is an <i>O(n)</i> operation, since the cache needs to be updated.
-	 *
-	 * @param position
-	 * 		the position to insert into the list.
-	 * @param item
-	 * 		the item to add. Note that if it is <code>null</code>, there is no way to determine which binder to use.
-	 */
-	public void add(final int position, @NonNull final T item) {
-		add(position, item, true);
 	}
 
 	/**
@@ -434,6 +455,20 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	 */
 	@Nullable
 	public T remove(final int itemPosition) {
+		return remove(itemPosition, true);
+	}
+
+	/**
+	 * Note that this is an <i>O(n)</i> operation, since the cache needs to be updated.
+	 *
+	 * @param itemPosition
+	 * 		removes the item at the position from the adapter.
+	 * @param notify
+	 * 		whether or not to call {@link #notifyItemRangeRemoved(int, int)}
+	 * @return the removed item, or <code>null</code> if the position was out of bounds.
+	 */
+	@Nullable
+	public T remove(final int itemPosition, final boolean notify) {
 
 		final T item;
 
@@ -460,14 +495,16 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 
 			mItemPositionToFirstViewHolderPositionCache.remove(itemPosition);
 
-			for (int itemIndex = itemPosition; itemIndex < mItemPositionToFirstViewHolderPositionCache.size(); itemIndex++) {
-				mItemPositionToFirstViewHolderPositionCache.set(itemIndex,
-						mItemPositionToFirstViewHolderPositionCache.get(itemIndex) - binders.size());
+			if (binders != null) {
+				for (int itemIndex = itemPosition; itemIndex < mItemPositionToFirstViewHolderPositionCache.size(); itemIndex++) {
+					mItemPositionToFirstViewHolderPositionCache.set(itemIndex,
+							mItemPositionToFirstViewHolderPositionCache.get(itemIndex) - binders.size());
+				}
 			}
 
 			mBinderListCache.remove(itemPosition);
 
-			if (binders != null) {
+			if (binders != null && notify) {
 				notifyItemRangeRemoved(numViewHolders, binders.size());
 			}
 		} else {
@@ -475,53 +512,6 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 		}
 
 		return item;
-	}
-
-	/**
-	 * Calls {@link #notifyItemRangeChanged(int, int)} on the viewholders associated with the item.
-	 *
-	 * @param itemPosition
-	 * 		the item position that was updated.
-	 * @return whether or not {@link #notifyItemRangeChanged(int, int)} was called.
-	 */
-	public boolean updateItem(final int itemPosition) {
-		boolean notified = false;
-
-		if (isItemPositionWithinBounds(itemPosition)) {
-			final int numViewHolders = getViewHolderCount(itemPosition);
-
-			final T item = mItems.get(itemPosition);
-
-			final List<Binder<? super T, ? extends VH>> binders = getParts(item, itemPosition);
-			if (binders == null) {
-				return false;
-			}
-			final int newBinderLength = binders.size();
-			final int oldBinderLength = mBinderListCache.get(itemPosition).size();
-
-			mBinderListCache.set(itemPosition, binders);
-
-			final int diff = Math.abs(oldBinderLength - newBinderLength);
-			// Using the difference in binder length, remove or add to the range.
-			for (int i = 0; i < diff; i++) {
-				if (oldBinderLength < newBinderLength) {
-					mViewHolderToItemPositionCache.add(numViewHolders, itemPosition);
-				} else {
-					mViewHolderToItemPositionCache.remove(numViewHolders);
-				}
-			}
-
-			// We need to update the pointers to the first viewholders.
-			for (int itemIndex = itemPosition + 1; itemIndex < mItemPositionToFirstViewHolderPositionCache.size(); itemIndex++) {
-				mItemPositionToFirstViewHolderPositionCache.set(itemIndex,
-						mItemPositionToFirstViewHolderPositionCache.get(itemIndex) + (newBinderLength - 1));
-			}
-
-			notifyItemRangeChanged(numViewHolders, binders.size());
-			notified = true;
-		}
-
-		return notified;
 	}
 
 	/**
@@ -533,13 +523,15 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	 *      the view holder type to look for.
 	 * @return the adapter data position for the view holder, or -1 if not found.
 	 */
-	public int getFirstViewHolderPosition(final int itemPosition, @NonNull final Class viewHolderClass) {
-		if (isItemPositionWithinBounds(itemPosition)) {
+	public int getFirstViewHolderPosition(final int itemPosition, @NonNull final Class<? extends VH> viewHolderClass) {
+		if (isItemPositionWithinBounds(itemPosition) && mViewHolderClassToViewTypeMap.containsKey(viewHolderClass)) {
 			final int itemStartPos = getViewHolderCount(itemPosition);
 			int viewHolderIndex = 0;
 			final List<Binder<? super T, ? extends VH>> binders = mBinderListCache.get(itemPosition);
+			final int viewType = mViewHolderClassToViewTypeMap.get(viewHolderClass);
+			final T item = mItems.get(itemPosition);
 			for (Binder<? super T, ? extends VH> binder : binders) {
-				if (binder.getViewHolderType().equals(viewHolderClass)) {
+				if (binder.getViewType(item) == viewType) {
 					return itemStartPos + viewHolderIndex;
 				}
 				viewHolderIndex++;
@@ -578,18 +570,29 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	public void onViewRecycled(final VH holder) {
 		super.onViewRecycled(holder);
 
-		final int viewHolderPosition = holder.getAdapterPosition();
+		onViewRecycled(holder, holder.getAdapterPosition());
+	}
 
+	/**
+	 * @param holder
+	 * 		the viewholder to recycle.
+	 * @param viewHolderPosition
+	 * 		the position of the viewholder.
+	 */
+	protected void onViewRecycled(final VH holder, final int viewHolderPosition) {
 		if (isViewHolderPositionWithinBounds(viewHolderPosition)) {
 			final BinderResult result = computeItemAndBinderIndex(viewHolderPosition);
 			final Binder binder = result.getBinder();
 
 			if (binder != null) {
+				// TODO: no type safety!
 				mViewHolderPreparedCache.remove(viewHolderPosition);
-				binder.unbind(holder);
-			}
 
-			// N.B. this fails when remove() is called (note that the item is gone)
+				if (holder.getItemViewType() == binder.getViewType(result.item)) {
+					binder.unbind(holder);
+				}
+			}
+			// TODO: Else - this fails when remove() is called (note that the item is gone)
 		}
 	}
 
@@ -649,10 +652,12 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	public interface Binder<U, V extends RecyclerView.ViewHolder> {
 
 		/**
+		 * @param model
+		 * 		the model that will be bound.
 		 * @return the type of the viewholder.
 		 */
-		@NonNull
-		Class<V> getViewHolderType();
+		@AnyRes
+		int getViewType(U model);
 
 		/**
 		 * Called to notify this binder that it may be called soon in the future. It may be called multiple times
@@ -725,8 +730,10 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 	 * 		the model type.
 	 * @param <V>
 	 * 		the viewholder type.
+	 * @param <B>
+	 *      the binder type.
 	 */
-	public interface ItemBinder<U, V extends RecyclerView.ViewHolder> {
+	public interface ItemBinder<U, V extends RecyclerView.ViewHolder, B extends GraywaterAdapter.Binder<U, ? extends V>> {
 		/**
 		 * @param model
 		 * 		the model that will be bound.
@@ -735,7 +742,7 @@ public abstract class GraywaterAdapter<T, VH extends RecyclerView.ViewHolder, MT
 		 * @return the list of binders to use.
 		 */
 		@NonNull
-		List<Binder<? super U, ? extends V>> getBinderList(@NonNull U model, int position);
+		List<B> getBinderList(@NonNull U model, int position);
 	}
 
 	/**
