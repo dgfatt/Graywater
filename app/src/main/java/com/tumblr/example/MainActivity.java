@@ -8,11 +8,13 @@ import android.support.v7.widget.RecyclerView;
 import com.tumblr.example.model.ColorNamePrimitive;
 import com.tumblr.example.model.Palette;
 import com.tumblr.example.model.Primitive;
+import dagger.android.AndroidInjection;
 
 public class MainActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		AndroidInjection.inject(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
