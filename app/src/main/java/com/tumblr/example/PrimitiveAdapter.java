@@ -1,5 +1,6 @@
 package com.tumblr.example;
 
+import android.support.annotation.NonNull;
 import com.tumblr.example.binder.ColorNameToastBinder;
 import com.tumblr.example.binder.HeaderBinder;
 import com.tumblr.example.binder.PaletteColorBinder;
@@ -20,6 +21,7 @@ import com.tumblr.example.viewholdercreator.TextPrimitiveViewHolderCreator;
 import com.tumblr.graywater.GraywaterAdapter;
 
 import javax.inject.Inject;
+import java.util.Map;
 
 /**
  * Created by ericleong on 3/13/16.
@@ -30,15 +32,16 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 		GraywaterAdapter.Binder<? extends Primitive, ? extends PrimitiveViewHolder>,
 		Class<? extends Primitive>> {
 
+	private final Map<Integer, ViewHolderCreator> mViewHolderCreatorMap;
+
 	@Inject
-	public PrimitiveAdapter(final TextPrimitiveBinder<ColorNamePrimitive> colorNameTextBinder,
+	public PrimitiveAdapter(final Map<Integer, ViewHolderCreator> viewHolderCreatorMap,
+	                        final TextPrimitiveBinder<ColorNamePrimitive> colorNameTextBinder,
 	                        final ColorNameToastBinder colorNameToastBinder,
 	                        final HeaderBinder headerBinder,
 	                        final TextPrimitiveBinder<Palette> paletteTextPrimitiveBinder,
 	                        final PaletteColorBinder paletteColorBinder) {
-		register(new TextPrimitiveViewHolderCreator(), TextPrimitiveViewHolder.class);
-		register(new HeaderViewHolderCreator(), HeaderViewHolder.class);
-		register(new ColorPrimitiveViewHolderCreator(), ColorPrimitiveViewHolder.class);
+		mViewHolderCreatorMap = viewHolderCreatorMap;
 
 		// A ColorNamePrimitive is composed of a string and a single color
 		final ColorNamePrimitiveItemBinder colorNamePrimitiveBinderList =
@@ -52,6 +55,12 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 		final PaletteItemBinder paletteBinderList =
 				new PaletteItemBinder(paletteTextPrimitiveBinder, paletteColorBinder);
 		register(Palette.class, paletteBinderList, paletteBinderList);
+	}
+
+	@NonNull
+	@Override
+	protected Map<Integer, ViewHolderCreator> getViewHolderCreatorMap() {
+		return mViewHolderCreatorMap;
 	}
 
 	@Override

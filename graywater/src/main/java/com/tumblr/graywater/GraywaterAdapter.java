@@ -149,7 +149,7 @@ public abstract class GraywaterAdapter<
 			list = itemBinder.getBinderList(model, position);
 
 			for (final Binder<? super T, ? extends VH> binder : list) {
-				if (!mViewHolderCreatorMap.containsKey(binder.getViewType(model))) {
+				if (!getViewHolderCreatorMap().containsKey(binder.getViewType(model))) {
 					throw new IllegalArgumentException("Need to register "
 							+ binder.getViewType(model)
 							+ " before adding a ItemBinder that uses it.");
@@ -204,7 +204,7 @@ public abstract class GraywaterAdapter<
 		final int viewType;
 
 		if (binder != null) {
-			viewType = mViewHolderCreatorMap.get(binder.getViewType(result.item)).getViewType();
+			viewType = getViewHolderCreatorMap().get(binder.getViewType(result.item)).getViewType();
 		} else {
 			// TODO: how do we handle this?
 			viewType = -1;
@@ -222,9 +222,14 @@ public abstract class GraywaterAdapter<
 		return mViewTypeToViewHolderClassMap.get(viewType);
 	}
 
+	@NonNull
+	protected Map<Integer, ViewHolderCreator> getViewHolderCreatorMap() {
+		return mViewHolderCreatorMap;
+	}
+
 	@Override
 	public VH onCreateViewHolder(final ViewGroup parent, final int viewType) {
-		return (VH) mViewHolderCreatorMap.get(viewType).create(parent);
+		return (VH) getViewHolderCreatorMap().get(viewType).create(parent);
 	}
 
 	@Override
