@@ -17,7 +17,7 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 		GraywaterAdapter.Binder<? extends Primitive, ? extends PrimitiveViewHolder>,
 		Class<? extends Primitive>> {
 
-	private final Map<Class<?>,
+	private final Map<Class<? extends Primitive>,
 			Provider<ItemBinder<
 					? extends Primitive,
 					? extends PrimitiveViewHolder,
@@ -25,7 +25,7 @@ public class PrimitiveAdapter extends GraywaterAdapter<
 
 	@Inject
 	public PrimitiveAdapter(final Map<Class<? extends PrimitiveViewHolder>, ViewHolderCreator> viewHolderCreatorMapClass,
-	                        final Map<Class<?>,
+	                        final Map<Class<? extends Primitive>,
 			                        Provider<ItemBinder<
 					                        ? extends Primitive,
 					                        ? extends PrimitiveViewHolder,

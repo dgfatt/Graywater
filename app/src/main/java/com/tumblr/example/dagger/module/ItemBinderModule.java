@@ -7,6 +7,7 @@ import com.tumblr.example.binder.TextPrimitiveBinder;
 import com.tumblr.example.binderlist.ColorNamePrimitiveItemBinder;
 import com.tumblr.example.binderlist.HeaderPrimitiveItemBinder;
 import com.tumblr.example.binderlist.PaletteItemBinder;
+import com.tumblr.example.dagger.key.PrimitiveItemBinderKey;
 import com.tumblr.example.dagger.scope.PerActivity;
 import com.tumblr.example.model.ColorNamePrimitive;
 import com.tumblr.example.model.Palette;
@@ -15,12 +16,7 @@ import com.tumblr.example.viewholder.PrimitiveViewHolder;
 import com.tumblr.graywater.GraywaterAdapter;
 import dagger.Module;
 import dagger.Provides;
-import dagger.android.ActivityKey;
-import dagger.multibindings.ClassKey;
 import dagger.multibindings.IntoMap;
-import dagger.multibindings.Multibinds;
-
-import java.util.Map;
 
 /**
  * Created by ericleong on 10/9/17.
@@ -31,7 +27,7 @@ public abstract class ItemBinderModule {
 	@PerActivity
 	@Provides
 	@IntoMap
-	@ClassKey(ColorNamePrimitive.class)
+	@PrimitiveItemBinderKey(ColorNamePrimitive.class)
 	static GraywaterAdapter.ItemBinder<
 			? extends Primitive,
 			? extends PrimitiveViewHolder,
@@ -46,7 +42,7 @@ public abstract class ItemBinderModule {
 	@PerActivity
 	@Provides
 	@IntoMap
-	@ClassKey(Primitive.Header.class)
+	@PrimitiveItemBinderKey(Primitive.Header.class)
 	static GraywaterAdapter.ItemBinder<
 			? extends Primitive,
 			? extends PrimitiveViewHolder,
@@ -59,7 +55,7 @@ public abstract class ItemBinderModule {
 	@PerActivity
 	@Provides
 	@IntoMap
-	@ClassKey(Palette.class)
+	@PrimitiveItemBinderKey(Palette.class)
 	static GraywaterAdapter.ItemBinder<
 			? extends Primitive,
 			? extends PrimitiveViewHolder,
