@@ -133,6 +133,15 @@ public abstract class GraywaterAdapter<
 
 	/**
 	 * @param model
+	 *      the model to get the {@link ItemBinder} for.
+	 * @return the {@link ItemBinder} for the given model.
+	 */
+	protected ItemBinder getItemBinder(final T model) {
+		return mItemBinderMap.get(getModelType(model));
+	}
+
+	/**
+	 * @param model
 	 * 		the model to get parts for.
 	 * @param position
 	 * 		the position of the model.
@@ -142,7 +151,7 @@ public abstract class GraywaterAdapter<
 	protected List<Binder<? super T, ? extends VH>> getParts(final T model, final int position) {
 		final List<Binder<? super T, ? extends VH>> list;
 
-		final ItemBinder itemBinder = mItemBinderMap.get(getModelType(model));
+		final ItemBinder itemBinder = getItemBinder(model);
 
 		if (itemBinder != null) {
 			// TODO: type safety
