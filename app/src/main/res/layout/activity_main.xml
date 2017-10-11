@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
-	android:id="@+id/list"
+	android:id="@+id/content"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:paddingBottom="@dimen/activity_vertical_margin"
-	android:paddingLeft="@dimen/activity_horizontal_margin"
-	android:paddingRight="@dimen/activity_horizontal_margin"
-	android:paddingTop="@dimen/activity_vertical_margin"
-	tools:context="com.tumblr.example.MainActivity" />
+	tools:context="com.tumblr.example.MainActivity" >
+
+	<fragment android:name="com.tumblr.example.ColorsFragment"
+		android:id="@+id/colors"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent" />
+
+</FrameLayout>

@@ -1,7 +1,9 @@
 package com.tumblr.example.dagger.module;
 
+import com.tumblr.example.ColorsFragment;
 import com.tumblr.example.MainActivity;
 import com.tumblr.example.dagger.scope.PerActivity;
+import com.tumblr.example.dagger.scope.PerFragment;
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
 
@@ -11,6 +13,10 @@ import dagger.android.ContributesAndroidInjector;
 @Module
 public abstract class AndroidBindingModule {
 	@PerActivity
+	@ContributesAndroidInjector
+	abstract MainActivity contributeMainActivityInjector();
+
+	@PerFragment
 	@ContributesAndroidInjector(
 			modules = {
 					BinderModule.class,
@@ -18,5 +24,5 @@ public abstract class AndroidBindingModule {
 					ItemBinderModule.class
 			}
 	)
-	abstract MainActivity contributeMainActivityInjector();
+	abstract ColorsFragment contributeColorsFragmentInjector();
 }

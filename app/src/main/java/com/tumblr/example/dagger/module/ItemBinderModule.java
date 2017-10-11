@@ -9,6 +9,7 @@ import com.tumblr.example.binderlist.HeaderPrimitiveItemBinder;
 import com.tumblr.example.binderlist.PaletteItemBinder;
 import com.tumblr.example.dagger.key.PrimitiveItemBinderKey;
 import com.tumblr.example.dagger.scope.PerActivity;
+import com.tumblr.example.dagger.scope.PerFragment;
 import com.tumblr.example.model.ColorNamePrimitive;
 import com.tumblr.example.model.Palette;
 import com.tumblr.example.model.Primitive;
@@ -24,7 +25,7 @@ import dagger.multibindings.IntoMap;
 @Module
 public abstract class ItemBinderModule {
 
-	@PerActivity
+	@PerFragment
 	@Provides
 	@IntoMap
 	@PrimitiveItemBinderKey(ColorNamePrimitive.class)
@@ -39,7 +40,7 @@ public abstract class ItemBinderModule {
 		return new ColorNamePrimitiveItemBinder(colorNameTextBinder, colorNameToastBinder);
 	}
 
-	@PerActivity
+	@PerFragment
 	@Provides
 	@IntoMap
 	@PrimitiveItemBinderKey(Primitive.Header.class)
@@ -52,7 +53,7 @@ public abstract class ItemBinderModule {
 		return new HeaderPrimitiveItemBinder(headerBinder);
 	}
 
-	@PerActivity
+	@PerFragment
 	@Provides
 	@IntoMap
 	@PrimitiveItemBinderKey(Palette.class)
