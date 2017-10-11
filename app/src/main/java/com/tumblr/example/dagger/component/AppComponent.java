@@ -6,6 +6,7 @@ import com.tumblr.example.dagger.module.BinderModule;
 import com.tumblr.example.dagger.module.ItemBinderModule;
 import com.tumblr.example.dagger.module.ViewHolderCreatorModule;
 import dagger.Component;
+import dagger.android.support.AndroidSupportInjectionModule;
 
 import javax.inject.Singleton;
 
@@ -14,6 +15,7 @@ import javax.inject.Singleton;
  */
 @Singleton
 @Component(modules = {
+		AndroidSupportInjectionModule.class,
 		AndroidBindingModule.class
 })
 public interface AppComponent {

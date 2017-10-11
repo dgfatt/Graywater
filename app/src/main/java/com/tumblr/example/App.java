@@ -2,7 +2,6 @@ package com.tumblr.example;
 
 import android.app.Activity;
 import android.app.Application;
-import com.tumblr.example.dagger.component.AppComponent;
 import com.tumblr.example.dagger.component.DaggerAppComponent;
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
