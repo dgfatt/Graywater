@@ -1,5 +1,6 @@
 package com.tumblr.example.dagger.module;
 
+import com.tumblr.example.MainActivity;
 import com.tumblr.example.binder.ColorNameToastBinder;
 import com.tumblr.example.binder.HeaderBinder;
 import com.tumblr.example.binder.PaletteColorBinder;
@@ -31,7 +32,7 @@ public class BinderModule {
 		return new TextPrimitiveBinder<>();
 	}
 	@Provides
-	static PaletteColorBinder providesPaletteColorBinder() {
-		return new PaletteColorBinder();
+	static PaletteColorBinder providesPaletteColorBinder(MainActivity mainActivity) {
+		return new PaletteColorBinder(mainActivity);
 	}
 }

@@ -1,5 +1,6 @@
 package com.tumblr.example.binder;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.Toast;
@@ -14,6 +15,12 @@ import java.util.List;
  * Created by ericleong on 3/13/16.
  */
 public class PaletteColorBinder implements GraywaterAdapter.Binder<Palette, ColorPrimitiveViewHolder> {
+
+	private final Context mContext;
+
+	public PaletteColorBinder(final Context context) {
+		mContext = context;
+	}
 
 	@Override
 	public int getViewType(final Palette model) {
