@@ -1,10 +1,7 @@
 package com.tumblr.example.dagger.component;
 
 import com.tumblr.example.App;
-import com.tumblr.example.dagger.module.AndroidBindingModule;
-import com.tumblr.example.dagger.module.BinderModule;
-import com.tumblr.example.dagger.module.ItemBinderModule;
-import com.tumblr.example.dagger.module.ViewHolderCreatorModule;
+import com.tumblr.example.dagger.module.ActivityBindingModule;
 import dagger.Component;
 import dagger.android.support.AndroidSupportInjectionModule;
 
@@ -16,7 +13,7 @@ import javax.inject.Singleton;
 @Singleton
 @Component(modules = {
 		AndroidSupportInjectionModule.class,
-		AndroidBindingModule.class
+		ActivityBindingModule.class
 })
 public interface AppComponent {
 	void inject(App app);
